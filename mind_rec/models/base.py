@@ -15,7 +15,7 @@ class AdditiveAttention(nn.Module):
         # x: (B, L, D)  mask: (B, L) bool True=valid
         w = torch.tanh(self.proj(x)) @ self.query       # (B, L)
         if mask is not None:
-            w = w.masked_fill(~mask, -1e9)
+            w = w.masked_fill(~mask, float("-inf"))
         w = torch.softmax(w, dim=-1)                    # (B, L)
         # rows where every position was masked produce NaN → zero them out
         w = torch.nan_to_num(w, nan=0.0)

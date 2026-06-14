@@ -36,7 +36,7 @@ class NPANewsEncoder(nn.Module):
             attn = x.new_zeros(x.size(0), x.size(1))
 
         attn = attn.masked_fill(~mask, float("-inf"))
-        attn = torch.softmax(attn, dim=-1).unsqueeze(-1)                          # (B, L, 1)
+        attn = torch.nan_to_num(torch.softmax(attn, dim=-1), nan=0.0).unsqueeze(-1)  # (B, L, 1)
         return (attn * x).sum(dim=1)                                              # (B, F)
 
 
@@ -54,7 +54,7 @@ class NPAUserEncoder(nn.Module):
         u_q = torch.relu(self.user_proj(self.user_emb(user_idx)))                 # (B, uq)
         attn = (self.news_proj(hist_vecs) * u_q.unsqueeze(1)).sum(-1)             # (B, H)
         attn = attn.masked_fill(~history_mask, float("-inf"))
-        attn = torch.softmax(attn, dim=-1).unsqueeze(-1)                          # (B, H, 1)
+        attn = torch.nan_to_num(torch.softmax(attn, dim=-1), nan=0.0).unsqueeze(-1)  # (B, H, 1)
         return (attn * hist_vecs).sum(dim=1)                                      # (B, D)
 
 
