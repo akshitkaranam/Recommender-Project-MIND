@@ -31,7 +31,7 @@ def compute_metrics(
         pos = labels.sum()
         if pos == 0 or pos == len(labels):
             continue
-        aucs.append(roc_auc_score(labels, scores))
+        aucs.append(roc_auc_score(labels.astype(int), scores))
         mrrs.append(mrr(scores, labels))
         ndcg5s.append(ndcg_at_k(scores, labels, 5))
         ndcg10s.append(ndcg_at_k(scores, labels, 10))

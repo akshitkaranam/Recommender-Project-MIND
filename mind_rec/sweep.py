@@ -275,7 +275,13 @@ def run_single(
     print(f"{'='*72}")
 
     set_seed(SEED)
-    device = torch.device(device_str if torch.cuda.is_available() else "cpu")
+    if device_str == "mps" and torch.backends.mps.is_available():
+        _resolved = "mps"
+    elif torch.cuda.is_available():
+        _resolved = device_str
+    else:
+        _resolved = "cpu"
+    device = torch.device(_resolved)
     cfg    = build_cfg(hp, model_name, device_str, ckpt_dir)
 
     model = build_model(
@@ -340,7 +346,7 @@ def run_single(
     ckpt_path = os.path.join(ckpt_dir, f"{model_name}_run{run_id:03d}_best.pt")
 
     use_amp = (device.type == "cuda")
-    scaler  = torch.amp.GradScaler("cuda", enabled=use_amp)
+    scaler  = torch.amp.GradScaler("cuda", enabled=use_amp) if use_amp else None
 
     # Early-stopping state
     best_val_loss    = float("inf")
@@ -360,11 +366,16 @@ def run_single(
                 scores = model(batch)
                 loss   = criterion(scores, batch["label"])
             optimizer.zero_grad()
-            scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
-            nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            scaler.step(optimizer)
-            scaler.update()
+            if scaler is not None:
+                scaler.scale(loss).backward()
+                scaler.unscale_(optimizer)
+                nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                loss.backward()
+                nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                optimizer.step()
             total_loss += loss.item()
             n_steps    += 1
             pbar.set_postfix(loss=f"{total_loss / n_steps:.4f}")
@@ -546,16 +557,22 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args   = parse_args()
-    device = args.device if torch.cuda.is_available() else "cpu"
+    if args.device == "mps" and torch.backends.mps.is_available():
+        device = "mps"
+    elif torch.cuda.is_available():
+        device = args.device
+    else:
+        device = "cpu"
     set_seed(SEED)
 
     if torch.cuda.is_available():
         print(f"GPU: {torch.cuda.get_device_name(0)}")
-        # TF32 is faster than FP32 on Ampere+ GPUs with negligible precision loss
         torch.set_float32_matmul_precision("high")
         print("  TF32 matmul precision enabled.")
+    elif device == "mps":
+        print("Apple MPS GPU enabled.")
     else:
-        print("No CUDA GPU found — running on CPU.")
+        print("No GPU found — running on CPU.")
 
     results_dir = Path(args.results_dir)
     ckpt_dir    = str(results_dir / "checkpoints")
