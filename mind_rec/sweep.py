@@ -676,9 +676,12 @@ def main() -> None:
 
     # -----------------------------------------------------------------------
     # Open result CSVs (written incrementally so partial sweeps are not lost)
+    # Each sweep run appends a timestamped suffix so prior results are never
+    # overwritten — the canonical files are kept for backwards compatibility.
     # -----------------------------------------------------------------------
-    epoch_csv_path   = results_dir / "epoch_metrics.csv"
-    summary_csv_path = results_dir / "sweep_summary.csv"
+    ts = time.strftime("%Y%m%d_%H%M%S")
+    epoch_csv_path   = results_dir / f"epoch_metrics_{ts}.csv"
+    summary_csv_path = results_dir / f"sweep_summary_{ts}.csv"
 
     epoch_file   = open(epoch_csv_path,   "w", newline="", encoding="utf-8")
     summary_file = open(summary_csv_path, "w", newline="", encoding="utf-8")

@@ -156,11 +156,11 @@ def main():
 
     print("Computing val metrics...")
     val_metrics = compute_eval_metrics(model, val_eval_ds, device)
-    print(f"Val  → auc={val_metrics['auc']:.4f}  mrr={val_metrics['mrr']:.4f}  ndcg5={val_metrics['ndcg5']:.4f}  ndcg10={val_metrics['ndcg10']:.4f}")
+    print(f"Val  : auc={val_metrics['auc']:.4f}  mrr={val_metrics['mrr']:.4f}  ndcg5={val_metrics['ndcg5']:.4f}  ndcg10={val_metrics['ndcg10']:.4f}")
 
     print("Computing test metrics...")
     test_metrics = compute_eval_metrics(model, test_ds, device)
-    print(f"Test → auc={test_metrics['auc']:.4f}  mrr={test_metrics['mrr']:.4f}  ndcg5={test_metrics['ndcg5']:.4f}  ndcg10={test_metrics['ndcg10']:.4f}")
+    print(f"Test : auc={test_metrics['auc']:.4f}  mrr={test_metrics['mrr']:.4f}  ndcg5={test_metrics['ndcg5']:.4f}  ndcg10={test_metrics['ndcg10']:.4f}")
 
     hp = {
         "lr": args.lr, "dropout": args.dropout, "batch_size": args.batch_size,
