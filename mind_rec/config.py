@@ -23,6 +23,8 @@ class ModelConfig:
     # NAML / LSTUR / NPA
     cnn_kernel_size: int = 3
     num_filters: int = 400
+    # Fastformer
+    num_fastformer_layers: int = 2
     # LSTUR
     lstur_mode: str = "ini"     # "ini" or "con"
     # NPA / LSTUR

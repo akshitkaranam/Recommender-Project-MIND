@@ -29,6 +29,7 @@ from models.nrms import NRMS
 from models.naml import NAML
 from models.lstur import LSTUR
 from models.npa import NPA
+from models.fastformer import Fastformer
 from trainer import train as run_training
 
 
@@ -37,6 +38,7 @@ MODEL_REGISTRY = {
     "naml": NAML,
     "lstur": LSTUR,
     "npa": NPA,
+    "fastformer": Fastformer,
 }
 
 
@@ -54,6 +56,7 @@ def parse_args():
     p.add_argument("--num_filters", type=int, default=400)
     p.add_argument("--dropout", type=float, default=0.2)
     p.add_argument("--lstur_mode", default="ini", choices=["ini", "con"])
+    p.add_argument("--fastformer_layers", type=int, default=2)
     p.add_argument("--glove", default=None, metavar="PATH")
     p.add_argument("--save_dir", default="checkpoints")
     p.add_argument("--log_every", type=int, default=100)
@@ -74,6 +77,7 @@ def build_config(args) -> Config:
     cfg.model.num_filters = args.num_filters
     cfg.model.dropout = args.dropout
     cfg.model.lstur_mode = args.lstur_mode
+    cfg.model.num_fastformer_layers = args.fastformer_layers
     cfg.train.model_name = args.model
     cfg.train.epochs = args.epochs
     cfg.train.batch_size = args.batch_size
@@ -154,6 +158,8 @@ def main():
         model = LSTUR(vocab_size, num_users, cfg)
     elif args.model == "npa":
         model = NPA(vocab_size, num_users, cfg)
+    elif args.model == "fastformer":
+        model = Fastformer(vocab_size, cfg)
     else:
         sys.exit(f"Unknown model: {args.model}")
 
